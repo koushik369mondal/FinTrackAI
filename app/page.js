@@ -1,4 +1,5 @@
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  return <div>Subscribe to Roadside Coder</div>;
+  return <Button variant="destructive">Subscribe to Roadside Coder</Button>;
 }

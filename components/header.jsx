@@ -21,7 +21,7 @@ const Header = () => {
                         <Link href={"/dashboard"}>
                         <Button variant="outline">
                             <LayoutDashboard size={18}/>
-                            <span>Dashboard</span>
+                            <span className="hidden md:inline">Dashboard</span>
                         </Button>
                         </Link>
                     </SignedIn>

@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# FinTrackAI 💸
 
-## Getting Started
+**FinTrackAI** is a modern full-stack, AI-powered personal finance tracker. It helps users manage accounts, track expenses, visualize insights, and stay within budgets — all in one powerful dashboard.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Getting Started
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Initial project setup is complete. Key features planned and under development include:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### ✅ Completed
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Project initialized with **Next.js 14** and **Shadcn UI**
+- App layout and page structure configured
+- Authentication system with sign-in and sign-up
+- Reusable Header component created
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Upcoming Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Dashboard for viewing and managing accounts
+- Transaction tracking with table and chart views
+- AI-powered receipt scanning and monthly insights
+- Budget management with email alerts
+- Cron jobs and rate limiting for backend stability
+- Full deployment on Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📁 Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Frontend:** Next.js, Tailwind CSS, Shadcn UI
+- **Backend:** Next.js API Routes, Prisma ORM
+- **Database:** PostgreSQL
+- **Others:** Inngest (cron jobs), Arcjet (rate limiting), Vercel (deployment)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📧 Contact
+
+Feel free to connect at: [koushik369mondal@gmail.com](mailto:koushik369mondal@gmail.com)

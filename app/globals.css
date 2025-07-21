@@ -132,3 +132,6 @@
   }
 }
 
+.hero-image-wrapper {
+  perspective: 100px;
+}

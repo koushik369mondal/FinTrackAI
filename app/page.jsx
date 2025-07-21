@@ -2,6 +2,7 @@ import HeroSection from "@/components/hero";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { featuresData, statsData } from "@/data/landing";
+import { space } from "postcss/lib/list";
 
 export default function Home() {
   return (
@@ -27,10 +28,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuresData.map((feature, index) => (
               <Card key={index} className="p-6">
-                <CardContent>
+                <CardContent className="space-y-4 pt-4">
                   {feature.icon}
-                  <h3>{feature.title}</h3>
-                  <p>{feature.description}</p>
+                  <h3 className="text-xl font-semibold">{feature.title}</h3>
+                  <p className="text-gray-600">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}

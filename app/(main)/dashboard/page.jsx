@@ -1,9 +1,7 @@
 import React from 'react'
 
-export default function Dashboard() {
+export default function DashboardPage() {
     return (
-        <div>
-            Dashboard Page
-        </div>
+        <div className='px-5'>Page</div>
     )
 }

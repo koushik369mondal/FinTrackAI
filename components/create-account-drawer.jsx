@@ -41,10 +41,10 @@ export default function CreateAccountDrawer({ children }) {
                 <DrawerHeader>
                     <DrawerTitle>Create New Account</DrawerTitle>
                 </DrawerHeader>
-                <div>
-                    <form action="">
-                        <div>
-                            <label htmlFor="name">Account Name</label>
+                <div className="px-4 pb-4">
+                    <form action="" className="space-y-4">
+                        <div className="space-y-2">
+                            <label htmlFor="name" className="text-sm font-medium">Account Name</label>
                             <Input
                                 id="name"
                                 placeholder="e.g., Main Checking"

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 
 import {
     Drawer,
+    DrawerClose,
     DrawerContent,
     DrawerHeader,
     DrawerTitle,
@@ -15,6 +16,7 @@ import { Input } from "./ui/input";
 import { accountSchema } from "../app/lib/schema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Switch } from "./ui/switch";
+import { Button } from "./ui/button";
 
 export default function CreateAccountDrawer({ children }) {
     const [open, setOpen] = useState(false);
@@ -100,6 +102,14 @@ export default function CreateAccountDrawer({ children }) {
                                 onCheckedChange={(checked) => setValue("isDefault", checked)}
                                 checked={watch("isDefault")}
                             />
+                        </div>
+
+                        <div>
+                            <DrawerClose asChild>
+                                <Button type="button" variant="outline" className="flex-1">
+                                    Cancel
+                                </Button>
+                            </DrawerClose>
                         </div>
                     </form>
                 </div>

@@ -38,6 +38,10 @@ export default function CreateAccountDrawer({ children }) {
         },
     });
 
+    const onSubmit = async (data) => {
+        console.log(data);
+    }
+
     return (
         <Drawer open={open} onOpenChange={setOpen}>
             <DrawerTrigger asChild>{children}</DrawerTrigger>
@@ -46,7 +50,7 @@ export default function CreateAccountDrawer({ children }) {
                     <DrawerTitle>Create New Account</DrawerTitle>
                 </DrawerHeader>
                 <div className="px-4 pb-4">
-                    <form action="" className="space-y-4">
+                    <form action="" className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                         <div className="space-y-2">
                             <label htmlFor="name" className="text-sm font-medium">Account Name</label>
                             <Input
@@ -104,12 +108,16 @@ export default function CreateAccountDrawer({ children }) {
                             />
                         </div>
 
-                        <div>
+                        <div className="flex gap-4 pt-4">
                             <DrawerClose asChild>
                                 <Button type="button" variant="outline" className="flex-1">
                                     Cancel
                                 </Button>
                             </DrawerClose>
+
+                            <Button type="submit" className="flex-1">
+                                Create Account
+                            </Button>
                         </div>
                     </form>
                 </div>

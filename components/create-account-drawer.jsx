@@ -55,6 +55,7 @@ export default function CreateAccountDrawer({ children }) {
                                 <p className="text-sm text-red-500">{errors.name.message}</p>
                             )}
                         </div>
+
                         <div className="space-y-2">
                             <label htmlFor="type" className="text-sm font-medium">Account Type</label>
                             <Select
@@ -71,6 +72,20 @@ export default function CreateAccountDrawer({ children }) {
                             </Select>
                             {errors.type && (
                                 <p className="text-sm text-red-500">{errors.type.message}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="balance" className="text-sm font-medium">Initial Balance</label>
+                            <Input
+                                id="balance"
+                                type="number"
+                                step="0.01"
+                                placeholder="0.00"
+                                {...register("balance")}
+                            />
+                            {errors.balance && (
+                                <p className="text-sm text-red-500">{errors.balance.message}</p>
                             )}
                         </div>
                     </form>

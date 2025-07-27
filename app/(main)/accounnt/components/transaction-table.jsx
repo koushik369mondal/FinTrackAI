@@ -38,6 +38,8 @@ const TransactionTable = ({ transactions }) => {
                             >
                                 <div className='flex items-center justify-end'>Amount</div>
                             </TableHead>
+                            <TableHead>Recurring</TableHead>
+                            <TableHead className="w-[50px]"/>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -5,6 +5,8 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import React from 'react'
 
 const TransactionTable = ({ transactions }) => {
+    const filteredAndSortedTransactions = transactions;
+
     const handleSort = () => { };
 
     return (
@@ -39,16 +41,24 @@ const TransactionTable = ({ transactions }) => {
                                 <div className='flex items-center justify-end'>Amount</div>
                             </TableHead>
                             <TableHead>Recurring</TableHead>
-                            <TableHead className="w-[50px]"/>
+                            <TableHead className="w-[50px]" />
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow>
-                            <TableCell className="font-medium">INV001</TableCell>
-                            <TableCell>Paid</TableCell>
-                            <TableCell>Credit Card</TableCell>
-                            <TableCell className="text-right">$250.00</TableCell>
-                        </TableRow>
+                        {filteredAndSortedTransactions.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                                    No Transactions Found
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            <TableRow>
+                                <TableCell className="font-medium">INV001</TableCell>
+                                <TableCell>Paid</TableCell>
+                                <TableCell>Credit Card</TableCell>
+                                <TableCell className="text-right">$250.00</TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>

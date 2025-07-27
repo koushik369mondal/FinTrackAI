@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Table,
@@ -10,8 +11,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
 import { format } from "date-fns";
+import { Clock } from "lucide-react";
 import React from "react";
 
 const TransactionTable = ({ transactions }) => {
@@ -84,9 +87,24 @@ const TransactionTable = ({ transactions }) => {
                                             {transaction.category}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-right" style={{ color: transaction.type === "EXPENSE" ? "red" : "green", }}>
+                                    <TableCell className="text-right font-medium" style={{ color: transaction.type === "EXPENSE" ? "red" : "green", }}>
                                         {transaction.type === "EXPENSE" ? "-" : "+"}₹
                                         {transaction.amount.toFixed(2)}
+                                    </TableCell>
+                                    <TableCell>
+                                        {transaction.isRecurring ? (
+                                            <Tooltip>
+                                                <TooltipTrigger>Hover</TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Add to library</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        ): (
+                                            <Badge variant="outline" className="gap-1">
+                                                <Clock className="h-3 w-3" />
+                                                One-time
+                                                </Badge>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))

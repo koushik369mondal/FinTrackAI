@@ -15,7 +15,7 @@ export default function AccountCard({account}) {
                     ${parseFloat(balance).toFixed(2)}
                 </div>
                 <p className='text-xs text-muted-foreground capitalize'>
-                    {type} Account
+                    {type.charAt(0) + type.slice(1).toLowerCase()} Account
                 </p>
             </CardContent>
             <CardFooter>

@@ -84,7 +84,10 @@ const TransactionTable = ({ transactions }) => {
                                             {transaction.category}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-right">$250.00</TableCell>
+                                    <TableCell className="text-right" style={{ color: transaction.type === "EXPENSE" ? "red" : "green", }}>
+                                        {transaction.type === "EXPENSE" ? "-" : "+"}₹
+                                        {transaction.amount.toFixed(2)}
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}

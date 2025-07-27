@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
     Drawer,
@@ -26,6 +26,7 @@ import { Button } from "./ui/button";
 import useFetch from "@/hooks/use-fetch";
 import { createAccount } from "@/actions/dashboard";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CreateAccountDrawer({ children }) {
     const [open, setOpen] = useState(false);
@@ -53,6 +54,20 @@ export default function CreateAccountDrawer({ children }) {
         error,
         fn: createAccountFn,
     } = useFetch(createAccount);
+
+    useEffect(() => {
+        if (newAccount && !createAccountLoading) {
+            toast.success("Account created successfully");
+            reset();
+            setOpen(false);
+        }
+    }, [createAccountLoading, newAccount]);
+
+    useEffect(() => {
+        if (error) {
+            toast.error(error.message || "Failed to create account");
+        }
+    }, [error]);
 
     const onSubmit = async (data) => {
         await createAccountFn(data);

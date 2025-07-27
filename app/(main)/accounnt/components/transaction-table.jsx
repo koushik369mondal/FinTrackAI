@@ -10,6 +10,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { categoryColors } from "@/data/categories";
 import { format } from "date-fns";
 import React from "react";
 
@@ -73,7 +74,16 @@ const TransactionTable = ({ transactions }) => {
                                         {format(new Date(transaction.date), "MMM dd, yyyy")}
                                     </TableCell>
                                     <TableCell>{transaction.description}</TableCell>
-                                    <TableCell>{transaction.category}</TableCell>
+                                    <TableCell className="capitalize">
+                                        <span
+                                            style={{
+                                                background: categoryColors[transaction.category],
+                                            }}
+                                            className="px-2 py-1 rounded text-white text-sm"
+                                        >
+                                            {transaction.category}
+                                        </span>
+                                    </TableCell>
                                     <TableCell className="text-right">$250.00</TableCell>
                                 </TableRow>
                             ))

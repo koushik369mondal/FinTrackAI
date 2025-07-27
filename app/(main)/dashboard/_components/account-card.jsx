@@ -13,10 +13,10 @@ import Link from "next/link";
 export default function AccountCard({ account }) {
     const { name, type, balance, id, isDefault } = account;
     return (
-        <Card>
+        <Card className="hover:shadow-md transition-shadow group relative">
             <Link href={`/accounts/${id}`}>
-                <CardHeader>
-                    <CardTitle>{name}</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium capitalize">{name}</CardTitle>
                     <Switch />
                 </CardHeader>
                 <CardContent>
@@ -27,13 +27,13 @@ export default function AccountCard({ account }) {
                         {type.charAt(0) + type.slice(1).toLowerCase()} Account
                     </p>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex justify-between text-sm text-muted-foreground mt-4">
                     <div className="flex items-center">
                         <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
                         Income
                     </div>
                     <div className="flex items-center">
-                        <ArrowDownRight className="ml-7 mr-1 h-4 w-4 text-red-500" />
+                        <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
                         Expense
                     </div>
                 </CardFooter>

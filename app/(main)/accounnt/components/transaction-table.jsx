@@ -36,6 +36,8 @@ const TransactionTable = ({ transactions }) => {
         direction: "desc",
     });
 
+    console.log(selectedIds);
+
     const filteredAndSortedTransactions = transactions;
 
     const handleSort = (field) => {
@@ -45,6 +47,16 @@ const TransactionTable = ({ transactions }) => {
                 current.field == field && current.direction === "asc" ? "desc" : "asc",
         }))
     };
+
+    const handleSelect = (id) => {
+        setSelectedIds((current) => 
+            current.includes(id)
+                ? current.filter((currentId) => currentId !== id)
+                : [...current, id]
+        );
+    };
+
+    const handleSelectAll = () => {};
 
     return (
         <div className="space-y-4">
@@ -119,7 +131,9 @@ const TransactionTable = ({ transactions }) => {
                             filteredAndSortedTransactions.map((transaction) => (
                                 <TableRow key={transaction.id}>
                                     <TableCell>
-                                        <Checkbox />
+                                        <Checkbox onCheckedChange={() => handleSelect(transaction.id)} 
+                                        checked={selectedIds.includes(transaction.id)}
+                                            />
                                     </TableCell>
                                     <TableCell>
                                         {format(new Date(transaction.date), "PP")}

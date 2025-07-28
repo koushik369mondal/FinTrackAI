@@ -90,6 +90,11 @@ const TransactionTable = ({ transactions }) => {
             });
         }
 
+        // Apply type filter
+        if(typeFilter) {
+            result = result.filter((transaction) => transaction.type === typeFilter);
+        }
+
         return result;
     }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
 

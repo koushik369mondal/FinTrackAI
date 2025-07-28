@@ -77,13 +77,29 @@ const TransactionTable = ({ transactions }) => {
                                 className="cursor-pointer"
                                 onClick={() => handleSort("category")}
                             >
-                                <div className="flex items-center">Category</div>
+                                <div className="flex items-center">
+                                    Category
+                                    {sortConfig.field === "category" &&
+                                        (sortConfig.direction === "asc" ? (
+                                            <ChevronUp className="h-4 w-4 ml-1" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4 ml-1" />
+                                        ))}
+                                </div>
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer"
                                 onClick={() => handleSort("amount")}
                             >
-                                <div className="flex items-center justify-end">Amount</div>
+                                <div className="flex items-center justify-end">
+                                    Amount
+                                    {sortConfig.field === "amount" &&
+                                        (sortConfig.direction === "asc" ? (
+                                            <ChevronUp className="h-4 w-4 ml-1" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4 ml-1" />
+                                        ))}
+                                </div>
                             </TableHead>
                             <TableHead>Recurring</TableHead>
                             <TableHead className="w-[50px]" />

@@ -17,6 +17,13 @@ import { format } from "date-fns";
 import { Clock } from "lucide-react";
 import React from "react";
 
+const RECURRING_INTERVALS = {
+    DAILY: "Daily",
+    WEEKLY: "Weekly",
+    MONTHLY: "Monthly",
+    YEARLY: "Yearly",
+}
+
 const TransactionTable = ({ transactions }) => {
     const filteredAndSortedTransactions = transactions;
 
@@ -94,16 +101,21 @@ const TransactionTable = ({ transactions }) => {
                                     <TableCell>
                                         {transaction.isRecurring ? (
                                             <Tooltip>
-                                                <TooltipTrigger>Hover</TooltipTrigger>
+                                                <TooltipTrigger>
+                                                    <Badge variant="outline" className="gap-1">
+                                                        <Clock className="h-3 w-3" />
+                                                        {RECURRING_INTERVALS[transaction.recurringInterval]}
+                                                    </Badge>
+                                                </TooltipTrigger>
                                                 <TooltipContent>
                                                     <p>Add to library</p>
                                                 </TooltipContent>
                                             </Tooltip>
-                                        ): (
+                                        ) : (
                                             <Badge variant="outline" className="gap-1">
                                                 <Clock className="h-3 w-3" />
                                                 One-time
-                                                </Badge>
+                                            </Badge>
                                         )}
                                     </TableCell>
                                 </TableRow>

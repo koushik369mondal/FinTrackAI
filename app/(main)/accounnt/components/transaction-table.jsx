@@ -1,5 +1,6 @@
 "use client";
 
+import { bulkDeleteTransactions, deleteTransaction } from "@/actions/accounts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -34,6 +35,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
+import useFetch from "@/hooks/use-fetch";
 import { format } from "date-fns";
 import {
     ChevronDown,
@@ -48,7 +50,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 // import { useRouter } from "next/router";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { BarLoader } from "react-spinners";
+import { toast } from "sonner";
 
 const RECURRING_INTERVALS = {
     DAILY: "Daily",
@@ -69,29 +73,41 @@ const TransactionTable = ({ transactions }) => {
     const [typeFilter, setTypeFilter] = useState("");
     const [recurringFilter, setRecurringFilter] = useState("");
 
+    const {
+        loading: deleteLoading,
+        fn: deleteFn,
+        data: deleted,
+    } = useFetch(bulkDeleteTransactions);
+
+    const {
+        loading: singleDeleteLoading,
+        fn: singleDeleteFn,
+        data: singleDeleted,
+    } = useFetch(deleteTransaction);
+
     // console.log(selectedIds);
 
     const filteredAndSortedTransactions = useMemo(() => {
         let result = [...transactions];
 
         // Apply search filter
-        if(searchTerm) {
+        if (searchTerm) {
             const searchLower = searchTerm.toLowerCase();
-            result = result.filter((transaction) => 
+            result = result.filter((transaction) =>
                 transaction.description?.toLowerCase().includes(searchLower)
             );
         }
 
         // Apply recurring filter
-        if(recurringFilter){
+        if (recurringFilter) {
             result = result.filter((transaction) => {
-                if(recurringFilter === "recurring") return transaction.isRecurring;
+                if (recurringFilter === "recurring") return transaction.isRecurring;
                 return !transaction.isRecurring;
             });
         }
 
         // Apply type filter
-        if(typeFilter) {
+        if (typeFilter) {
             result = result.filter((transaction) => transaction.type === typeFilter);
         }
 
@@ -99,7 +115,7 @@ const TransactionTable = ({ transactions }) => {
         result.sort((a, b) => {
             let comparison = 0;
 
-            switch(sortConfig.field) {
+            switch (sortConfig.field) {
                 case "date":
                     comparison = new Date(a.date) - new Date(b.date);
                     break;
@@ -113,7 +129,7 @@ const TransactionTable = ({ transactions }) => {
                     comparison = 0;
             }
             return sortConfig.direction === "asc" ? comparison : -comparison;
-        })
+        });
 
         return result;
     }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
@@ -142,7 +158,46 @@ const TransactionTable = ({ transactions }) => {
         );
     };
 
-    const handleBulkDelete = () => { };
+    const handleBulkDelete = () => {
+        if (
+            !window.confirm(
+                `Are you sure you want to delete ${selectedIds.length} transactions?`
+            )
+        ) {
+            return;
+        }
+        deleteFn(selectedIds);
+    };
+
+    const handleSingleDelete = (transactionId) => {
+        if (!window.confirm("Are you sure you want to delete this transaction?")) {
+            return;
+        }
+        singleDeleteFn(transactionId);
+    };
+
+    useEffect(() => {
+        if (deleted && !deleteLoading) {
+            if (deleted.success) {
+                toast.success(deleted.message || "Transactions deleted successfully");
+                setSelectedIds([]); // Clear selection after successful delete
+                router.refresh(); // Refresh the page to update the data
+            } else {
+                toast.error(deleted.error || "Failed to delete transactions");
+            }
+        }
+    }, [deleted, deleteLoading, router]);
+
+    useEffect(() => {
+        if (singleDeleted && !singleDeleteLoading) {
+            if (singleDeleted.success) {
+                toast.success(singleDeleted.message || "Transaction deleted successfully");
+                router.refresh(); // Refresh the page to update the data
+            } else {
+                toast.error(singleDeleted.error || "Failed to delete transaction");
+            }
+        }
+    }, [singleDeleted, singleDeleteLoading, router]);
 
     const handleClearFilters = () => {
         setSearchTerm("");
@@ -153,6 +208,10 @@ const TransactionTable = ({ transactions }) => {
 
     return (
         <div className="space-y-4">
+            {deleteLoading && (
+                <BarLoader className="mt-4" width={"100%"} color="#9333ea" />
+            )}
+
             {/* Filters  */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
@@ -371,7 +430,7 @@ const TransactionTable = ({ transactions }) => {
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="text-destructive"
-                                                // onClick={() => deleteFn([transaction.id])}
+                                                    onClick={() => handleSingleDelete(transaction.id)}
                                                 >
                                                     Delete
                                                 </DropdownMenuItem>

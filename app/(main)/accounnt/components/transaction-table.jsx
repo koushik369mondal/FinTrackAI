@@ -49,14 +49,20 @@ const TransactionTable = ({ transactions }) => {
     };
 
     const handleSelect = (id) => {
-        setSelectedIds((current) => 
+        setSelectedIds((current) =>
             current.includes(id)
-                ? current.filter((currentId) => currentId !== id)
+                ? current.filter((item) => item !== id)
                 : [...current, id]
         );
     };
 
-    const handleSelectAll = () => {};
+    const handleSelectAll = () => {
+        setSelectedIds((current) =>
+            current.length === filteredAndSortedTransactions.length
+                ? []
+                : filteredAndSortedTransactions.map((t) => t.id)
+        );
+    };
 
     return (
         <div className="space-y-4">
@@ -68,7 +74,13 @@ const TransactionTable = ({ transactions }) => {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[50px]">
-                                <Checkbox />
+                                <Checkbox
+                                    onCheckedChange={handleSelectAll}
+                                    checked={selectedIds.length ===
+                                        filteredAndSortedTransactions.length &&
+                                        filteredAndSortedTransactions.length > 0
+                                    }
+                                />
                             </TableHead>
                             <TableHead
                                 className="cursor-pointer"
@@ -131,9 +143,9 @@ const TransactionTable = ({ transactions }) => {
                             filteredAndSortedTransactions.map((transaction) => (
                                 <TableRow key={transaction.id}>
                                     <TableCell>
-                                        <Checkbox onCheckedChange={() => handleSelect(transaction.id)} 
-                                        checked={selectedIds.includes(transaction.id)}
-                                            />
+                                        <Checkbox onCheckedChange={() => handleSelect(transaction.id)}
+                                            checked={selectedIds.includes(transaction.id)}
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         {format(new Date(transaction.date), "PP")}

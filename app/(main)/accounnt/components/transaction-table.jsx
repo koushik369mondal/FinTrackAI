@@ -127,6 +127,14 @@ const TransactionTable = ({ transactions }) => {
                         </SelectContent>
                     </Select>
 
+                    {selectedIds.length > 0 && (
+                        <div>
+                            <Button variant="destructive">
+                                Delete Selected({selectedIds.length})
+                            </Button>
+                            <div />
+                        </div>
+                    )}
                 </div>
             </div>
 

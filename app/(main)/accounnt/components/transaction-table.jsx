@@ -14,7 +14,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
 import { format } from "date-fns";
-import { Clock } from "lucide-react";
+import { Clock, RefreshCcw, RefreshCw } from "lucide-react";
 import React from "react";
 
 const RECURRING_INTERVALS = {
@@ -102,8 +102,8 @@ const TransactionTable = ({ transactions }) => {
                                         {transaction.isRecurring ? (
                                             <Tooltip>
                                                 <TooltipTrigger>
-                                                    <Badge variant="outline" className="gap-1">
-                                                        <Clock className="h-3 w-3" />
+                                                    <Badge variant="outline" className="gap-1 bg-purple-400 hover:bg-purple-200">
+                                                        <RefreshCw className="h-3 w-3" />
                                                         {RECURRING_INTERVALS[transaction.recurringInterval]}
                                                     </Badge>
                                                 </TooltipTrigger>

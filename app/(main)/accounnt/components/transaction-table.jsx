@@ -12,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -100,6 +101,32 @@ const TransactionTable = ({ transactions }) => {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                </div>
+
+                <div className="flex gap-2">
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="All Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="INCOME">Income</SelectItem>
+                            <SelectItem value="EXPENSE">Expense</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={recurringFilter}
+                        onValueChange={(value) => setRecurringFilter(value)}
+                    >
+                        <SelectTrigger className="w-[150px]">
+                            <SelectValue placeholder="All Transactions" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="recurring">Recurring Only</SelectItem>
+                            <SelectItem value="non-recurring">Non-Recurring Only</SelectItem>
+                        </SelectContent>
+                    </Select>
+
                 </div>
             </div>
 

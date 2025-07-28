@@ -81,7 +81,7 @@ const TransactionTable = ({ transactions }) => {
                                         <Checkbox />
                                     </TableCell>
                                     <TableCell>
-                                        {format(new Date(transaction.date), "MMM dd, yyyy")}
+                                        {format(new Date(transaction.date), "PP")}
                                     </TableCell>
                                     <TableCell>{transaction.description}</TableCell>
                                     <TableCell className="capitalize">
@@ -108,7 +108,12 @@ const TransactionTable = ({ transactions }) => {
                                                     </Badge>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Add to library</p>
+                                                    <div className="text-sm">
+                                                        <div className="font-medium">Next Date:</div>
+                                                        <div>
+                                                            {format(new Date(transaction.nextRecurringDate), "PP")}
+                                                        </div>
+                                                    </div>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : (

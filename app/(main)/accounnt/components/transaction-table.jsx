@@ -16,10 +16,10 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
 import { format } from "date-fns";
-import { Clock, MoreHorizontal, RefreshCcw, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCcw, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 // import { useRouter } from "next/router";
-import React from "react";
+import React, { useState } from "react";
 
 const RECURRING_INTERVALS = {
     DAILY: "Daily",
@@ -30,10 +30,21 @@ const RECURRING_INTERVALS = {
 
 const TransactionTable = ({ transactions }) => {
     const router = useRouter();
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [sortConfig, setSortConfig] = useState({
+        field: "date",
+        direction: "desc",
+    });
 
     const filteredAndSortedTransactions = transactions;
 
-    const handleSort = () => { };
+    const handleSort = (field) => {
+        setSortConfig((current) => ({
+            field,
+            direction:
+                current.field == field && current.direction === "asc" ? "desc" : "asc",
+        }))
+    };
 
     return (
         <div className="space-y-4">
@@ -51,7 +62,15 @@ const TransactionTable = ({ transactions }) => {
                                 className="cursor-pointer"
                                 onClick={() => handleSort("date")}
                             >
-                                <div className="flex items-center">Date</div>
+                                <div className="flex items-center">
+                                    Date{" "}
+                                    {sortConfig.field === "date" &&
+                                        (sortConfig.direction === "asc" ? (
+                                            <ChevronUp className="h-4 w-4 ml-1" />
+                                        ) : (
+                                            <ChevronDown className="h-4 w-4 ml-1" />
+                                        ))}
+                                </div>
                             </TableHead>
                             <TableHead>Description</TableHead>
                             <TableHead
@@ -149,7 +168,7 @@ const TransactionTable = ({ transactions }) => {
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="text-destructive"
-                                                    // onClick={() => deleteFn([transaction.id])}
+                                                // onClick={() => deleteFn([transaction.id])}
                                                 >
                                                     Delete
                                                 </DropdownMenuItem>

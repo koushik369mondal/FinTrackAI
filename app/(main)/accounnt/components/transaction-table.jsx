@@ -3,7 +3,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
     Table,
     TableBody,
@@ -13,10 +21,22 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
 import { format } from "date-fns";
-import { ChevronDown, ChevronUp, Clock, MoreHorizontal, RefreshCcw, RefreshCw } from "lucide-react";
+import {
+    ChevronDown,
+    ChevronUp,
+    Clock,
+    MoreHorizontal,
+    RefreshCcw,
+    RefreshCw,
+    Search,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 // import { useRouter } from "next/router";
 import React, { useState } from "react";
@@ -26,7 +46,7 @@ const RECURRING_INTERVALS = {
     WEEKLY: "Weekly",
     MONTHLY: "Monthly",
     YEARLY: "Yearly",
-}
+};
 
 const TransactionTable = ({ transactions }) => {
     const router = useRouter();
@@ -36,7 +56,11 @@ const TransactionTable = ({ transactions }) => {
         direction: "desc",
     });
 
-    console.log(selectedIds);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [typeFilter, setTypeFilter] = useState("");
+    const [recurringFilter, setRecurringFilter] = useState("");
+
+    // console.log(selectedIds);
 
     const filteredAndSortedTransactions = transactions;
 
@@ -45,7 +69,7 @@ const TransactionTable = ({ transactions }) => {
             field,
             direction:
                 current.field == field && current.direction === "asc" ? "desc" : "asc",
-        }))
+        }));
     };
 
     const handleSelect = (id) => {
@@ -67,6 +91,17 @@ const TransactionTable = ({ transactions }) => {
     return (
         <div className="space-y-4">
             {/* Filters  */}
+            <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        className="pl-8"
+                        placeholder="Search transactions..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
 
             {/* Transactions   */}
             <div className="rounded-md border">
@@ -76,7 +111,8 @@ const TransactionTable = ({ transactions }) => {
                             <TableHead className="w-[50px]">
                                 <Checkbox
                                     onCheckedChange={handleSelectAll}
-                                    checked={selectedIds.length ===
+                                    checked={
+                                        selectedIds.length ===
                                         filteredAndSortedTransactions.length &&
                                         filteredAndSortedTransactions.length > 0
                                     }
@@ -143,7 +179,8 @@ const TransactionTable = ({ transactions }) => {
                             filteredAndSortedTransactions.map((transaction) => (
                                 <TableRow key={transaction.id}>
                                     <TableCell>
-                                        <Checkbox onCheckedChange={() => handleSelect(transaction.id)}
+                                        <Checkbox
+                                            onCheckedChange={() => handleSelect(transaction.id)}
                                             checked={selectedIds.includes(transaction.id)}
                                         />
                                     </TableCell>
@@ -161,7 +198,12 @@ const TransactionTable = ({ transactions }) => {
                                             {transaction.category}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-right font-medium" style={{ color: transaction.type === "EXPENSE" ? "red" : "green", }}>
+                                    <TableCell
+                                        className="text-right font-medium"
+                                        style={{
+                                            color: transaction.type === "EXPENSE" ? "red" : "green",
+                                        }}
+                                    >
                                         {transaction.type === "EXPENSE" ? "-" : "+"}₹
                                         {transaction.amount.toFixed(2)}
                                     </TableCell>
@@ -169,7 +211,10 @@ const TransactionTable = ({ transactions }) => {
                                         {transaction.isRecurring ? (
                                             <Tooltip>
                                                 <TooltipTrigger>
-                                                    <Badge variant="outline" className="gap-1 bg-purple-400 hover:bg-purple-200">
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="gap-1 bg-purple-400 hover:bg-purple-200"
+                                                    >
                                                         <RefreshCw className="h-3 w-3" />
                                                         {RECURRING_INTERVALS[transaction.recurringInterval]}
                                                     </Badge>
@@ -178,7 +223,10 @@ const TransactionTable = ({ transactions }) => {
                                                     <div className="text-sm">
                                                         <div className="font-medium">Next Date:</div>
                                                         <div>
-                                                            {format(new Date(transaction.nextRecurringDate), "PP")}
+                                                            {format(
+                                                                new Date(transaction.nextRecurringDate),
+                                                                "PP"
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </TooltipContent>

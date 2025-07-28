@@ -1,7 +1,9 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
     Table,
     TableBody,
@@ -14,7 +16,9 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { categoryColors } from "@/data/categories";
 import { format } from "date-fns";
-import { Clock, RefreshCcw, RefreshCw } from "lucide-react";
+import { Clock, MoreHorizontal, RefreshCcw, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+// import { useRouter } from "next/router";
 import React from "react";
 
 const RECURRING_INTERVALS = {
@@ -25,6 +29,8 @@ const RECURRING_INTERVALS = {
 }
 
 const TransactionTable = ({ transactions }) => {
+    const router = useRouter();
+
     const filteredAndSortedTransactions = transactions;
 
     const handleSort = () => { };
@@ -122,6 +128,33 @@ const TransactionTable = ({ transactions }) => {
                                                 One-time
                                             </Badge>
                                         )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuLabel
+                                                    onClick={() =>
+                                                        router.push(
+                                                            `/transaction/create?edit=${transaction.id}`
+                                                        )
+                                                    }
+                                                >
+                                                    Edit
+                                                </DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    className="text-destructive"
+                                                    // onClick={() => deleteFn([transaction.id])}
+                                                >
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             ))

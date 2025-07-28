@@ -167,7 +167,7 @@ export async function bulkDeleteTransactions(transactionIds) {
         });
 
         revalidatePath("/dashboard");
-        revalidatePath("/account/[id]");
+        revalidatePath("/account/[id]", "page");
 
         return { success: true, message: "Transactions deleted successfully" };
     } catch (error) {
@@ -230,7 +230,7 @@ export async function deleteTransaction(transactionId) {
         });
 
         revalidatePath("/dashboard");
-        revalidatePath("/account/[id]");
+        revalidatePath("/account/[id]", "page");
 
         return { success: true, message: "Transaction deleted successfully" };
     } catch (error) {

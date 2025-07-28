@@ -181,7 +181,10 @@ const TransactionTable = ({ transactions }) => {
             if (deleted.success) {
                 toast.success(deleted.message || "Transactions deleted successfully");
                 setSelectedIds([]); // Clear selection after successful delete
-                router.refresh(); // Refresh the page to update the data
+                // Use a timeout to ensure server-side revalidation completes
+                setTimeout(() => {
+                    router.refresh();
+                }, 500);
             } else {
                 toast.error(deleted.error || "Failed to delete transactions");
             }
@@ -192,7 +195,10 @@ const TransactionTable = ({ transactions }) => {
         if (singleDeleted && !singleDeleteLoading) {
             if (singleDeleted.success) {
                 toast.success(singleDeleted.message || "Transaction deleted successfully");
-                router.refresh(); // Refresh the page to update the data
+                // Use a timeout to ensure server-side revalidation completes
+                setTimeout(() => {
+                    router.refresh();
+                }, 500);
             } else {
                 toast.error(singleDeleted.error || "Failed to delete transaction");
             }

@@ -167,7 +167,11 @@ export async function bulkDeleteTransactions(transactionIds) {
         });
 
         revalidatePath("/dashboard");
-        revalidatePath("/account/[id]", "page");
+        
+        // Revalidate all affected account pages
+        for (const accountId of Object.keys(accountBalanceChanges)) {
+            revalidatePath(`/accounnt/${accountId}`, "page");
+        }
 
         return { success: true, message: "Transactions deleted successfully" };
     } catch (error) {
@@ -180,6 +184,7 @@ export async function bulkDeleteTransactions(transactionIds) {
 
 export async function deleteTransaction(transactionId) {
     try {
+        console.log('Delete transaction called with ID:', transactionId);
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorized");
 
@@ -203,11 +208,15 @@ export async function deleteTransaction(transactionId) {
             throw new Error("Transaction not found");
         }
 
+        console.log('Found transaction to delete:', transaction);
+
         // Calculate balance change
         const balanceChange =
             transaction.type === "EXPENSE"
                 ? transaction.amount
                 : -transaction.amount;
+
+        console.log('Balance change:', balanceChange);
 
         // Delete transaction and update account balance in a transaction
         await db.$transaction(async (tx) => {
@@ -229,8 +238,10 @@ export async function deleteTransaction(transactionId) {
             });
         });
 
+        console.log('Transaction deleted successfully');
+
         revalidatePath("/dashboard");
-        revalidatePath("/account/[id]", "page");
+        revalidatePath(`/accounnt/${transaction.accountId}`, "page");
 
         return { success: true, message: "Transaction deleted successfully" };
     } catch (error) {

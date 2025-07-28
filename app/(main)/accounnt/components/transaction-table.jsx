@@ -37,6 +37,8 @@ import {
     RefreshCcw,
     RefreshCw,
     Search,
+    Trash,
+    X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 // import { useRouter } from "next/router";
@@ -89,6 +91,15 @@ const TransactionTable = ({ transactions }) => {
         );
     };
 
+    const handleBulkDelete = () => {};
+
+    const handleClearFilters = () => {
+        setSearchTerm("");
+        setTypeFilter("");
+        setRecurringFilter("");
+        setSelectedIds([]);
+    };
+
     return (
         <div className="space-y-4">
             {/* Filters  */}
@@ -128,12 +139,28 @@ const TransactionTable = ({ transactions }) => {
                     </Select>
 
                     {selectedIds.length > 0 && (
-                        <div>
-                            <Button variant="destructive">
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleBulkDelete}
+                            >
+                                <Trash className="h-4 w-4 mr-2" />
                                 Delete Selected({selectedIds.length})
                             </Button>
                             <div />
                         </div>
+                    )}
+
+                    {(searchTerm || typeFilter || recurringFilter) && (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleClearFilters}
+                            title="Clear Filters"
+                        >
+                            <X className="h-4 w-5" />
+                        </Button>
                     )}
                 </div>
             </div>

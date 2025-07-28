@@ -12,7 +12,13 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -42,7 +48,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 // import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 const RECURRING_INTERVALS = {
     DAILY: "Daily",
@@ -65,7 +71,19 @@ const TransactionTable = ({ transactions }) => {
 
     // console.log(selectedIds);
 
-    const filteredAndSortedTransactions = transactions;
+    const filteredAndSortedTransactions = useMemo(() => {
+        let result = [...transactions];
+
+        // Apply search filter
+        if(searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            result = result.filter((transaction) => 
+                transaction.description?.toLowerCase().includes(searchLower)
+            );
+        }
+
+        return result;
+    }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
 
     const handleSort = (field) => {
         setSortConfig((current) => ({
@@ -91,7 +109,7 @@ const TransactionTable = ({ transactions }) => {
         );
     };
 
-    const handleBulkDelete = () => {};
+    const handleBulkDelete = () => { };
 
     const handleClearFilters = () => {
         setSearchTerm("");

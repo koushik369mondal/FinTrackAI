@@ -5,16 +5,21 @@ import { get } from "react-hook-form";
 import AccountDetailClient from "../components/account-detail-client";
 import { BarLoader } from "react-spinners";
 
-export default async function AccountDetailPage({ params }) {
+export default async function AccountDetailPage({ params, searchParams }) {
     try {
         const { id } = await params;
-        const accountData = await getAccountWithTransactions(id);
+        const { page = '1', limit = '10' } = await searchParams || {}; // Changed to 10 transactions per page as default
+        
+        const currentPage = parseInt(page);
+        const pageLimit = parseInt(limit);
+        
+        const accountData = await getAccountWithTransactions(id, currentPage, pageLimit);
 
         if (!accountData) {
             notFound();
         }
 
-        const { transactions, ...account } = accountData;
+        const { transactions, pagination, ...account } = accountData;
 
         return (
             <Suspense
@@ -22,7 +27,8 @@ export default async function AccountDetailPage({ params }) {
             >
                 <AccountDetailClient 
                     initialAccount={account} 
-                    initialTransactions={transactions} 
+                    initialTransactions={transactions}
+                    initialPagination={pagination}
                 />
             </Suspense>
         );

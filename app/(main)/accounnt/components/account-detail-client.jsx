@@ -2,17 +2,24 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { BarLoader } from "react-spinners";
+import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { createTestTransactions } from "@/actions/test-data";
+import { getTransactionsPage } from "@/actions/pagination";
 import TransactionTable from "./transaction-table";
+import Pagination from "@/components/pagination";
 
-const AccountDetailClient = ({ initialAccount, initialTransactions }) => {
+const AccountDetailClient = ({ initialAccount, initialTransactions, initialPagination }) => {
+    const searchParams = useSearchParams();
     const [account, setAccount] = useState(initialAccount);
     const [transactions, setTransactions] = useState(initialTransactions);
+    const [pagination, setPagination] = useState(initialPagination);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [connectionStatus, setConnectionStatus] = useState('connected');
 
-    // Calculate transaction count dynamically instead of useEffect
-    const transactionCount = transactions.length;
+    // Calculate transaction count from pagination or local data
+    const transactionCount = pagination?.totalTransactions || transactions.length;
 
     const handleTransactionUpdate = useCallback((updatedTransactions, balanceChange = 0) => {
         // Prevent rapid successive updates
@@ -41,6 +48,14 @@ const AccountDetailClient = ({ initialAccount, initialTransactions }) => {
                     };
                 });
             }
+
+            // Update pagination total when transactions change
+            if (pagination) {
+                setPagination(prev => ({
+                    ...prev,
+                    totalTransactions: Math.max(0, prev.totalTransactions + (updatedTransactions.length - transactions.length))
+                }));
+            }
         } catch (err) {
             setError('Failed to update transaction. Please try again.');
             console.error('Transaction update error:', err);
@@ -48,7 +63,82 @@ const AccountDetailClient = ({ initialAccount, initialTransactions }) => {
         
         // Reset loading after a short delay
         setTimeout(() => setIsLoading(false), 200);
-    }, [isLoading]);
+    }, [isLoading, transactions.length, pagination]);
+
+    const handlePageChange = useCallback(async (newPage) => {
+        // Prevent navigation if already loading
+        if (isLoading) return;
+        
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const currentLimit = pagination?.limit || 10;
+            const result = await getTransactionsPage(account.id, newPage, currentLimit);
+            
+            if (result.success) {
+                // Update URL without triggering page reload
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', newPage.toString());
+                params.set('limit', currentLimit.toString());
+                window.history.pushState({}, '', `?${params.toString()}`);
+                
+                // Update state with new data
+                setTransactions(result.data.transactions);
+                setPagination(result.data.pagination);
+            } else {
+                setError(result.error || 'Failed to load page');
+            }
+        } catch (error) {
+            console.error('Page change error:', error);
+            setError('Failed to load page. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [account.id, pagination?.limit, isLoading]);
+
+    const handlePageSizeChange = useCallback(async (newLimit) => {
+        if (isLoading) return;
+        
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            const result = await getTransactionsPage(account.id, 1, newLimit); // Reset to page 1 when changing size
+            
+            if (result.success) {
+                // Update URL without triggering page reload
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', '1');
+                params.set('limit', newLimit.toString());
+                window.history.pushState({}, '', `?${params.toString()}`);
+                
+                // Update state with new data
+                setTransactions(result.data.transactions);
+                setPagination(result.data.pagination);
+            } else {
+                setError(result.error || 'Failed to change page size');
+            }
+        } catch (error) {
+            console.error('Page size change error:', error);
+            setError('Failed to change page size. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [account.id, isLoading]);
+
+    const handleCreateTestData = useCallback(async () => {
+        if (window.confirm('Create 100 test transactions? This will help test pagination properly.')) {
+            setIsLoading(true);
+            try {
+                await createTestTransactions(account.id, 100);
+                window.location.reload(); // Reload to show new data
+            } catch (error) {
+                setError('Failed to create test data');
+                setIsLoading(false);
+            }
+        }
+    }, [account.id]);
 
     // Monitor for connection issues
     useEffect(() => {
@@ -118,6 +208,17 @@ const AccountDetailClient = ({ initialAccount, initialTransactions }) => {
                     <p className="text-sm text-muted-foreground">
                         {transactionCount} Transactions
                     </p>
+                    {/* Temporary test button - remove in production */}
+                    {transactionCount < 100 && (
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleCreateTestData}
+                            className="mt-2"
+                        >
+                            Add Test Data (100)
+                        </Button>
+                    )}
                 </div>
             </div>
             {/* Chart Section */}
@@ -126,7 +227,20 @@ const AccountDetailClient = ({ initialAccount, initialTransactions }) => {
             <TransactionTable 
                 transactions={transactions} 
                 onTransactionUpdate={handleTransactionUpdate}
+                isPaginated={!!pagination}
             />
+
+            {/* Pagination */}
+            {pagination && pagination.totalTransactions > 0 && (
+                <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    totalTransactions={pagination.totalTransactions}
+                    limit={pagination.limit}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                />
+            )}
         </div>
     );
 };

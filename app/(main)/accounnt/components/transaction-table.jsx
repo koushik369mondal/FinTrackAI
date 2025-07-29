@@ -63,7 +63,7 @@ const RECURRING_INTERVALS = {
     YEARLY: "Yearly",
 };
 
-const TransactionTable = ({ transactions: initialTransactions, onTransactionUpdate }) => {
+const TransactionTable = ({ transactions: initialTransactions, onTransactionUpdate, isPaginated = false }) => {
     const router = useRouter();
     const pathname = usePathname();
     const isMountedRef = useRef(true);
@@ -148,7 +148,7 @@ const TransactionTable = ({ transactions: initialTransactions, onTransactionUpda
     const filteredAndSortedTransactions = useMemo(() => {
         let result = [...transactions];
 
-        // Apply search filter
+        // Apply search filter (client-side for current page)
         if (searchTerm) {
             const searchLower = searchTerm.toLowerCase();
             result = result.filter((transaction) =>
@@ -156,7 +156,7 @@ const TransactionTable = ({ transactions: initialTransactions, onTransactionUpda
             );
         }
 
-        // Apply recurring filter
+        // Apply recurring filter (client-side for current page)
         if (recurringFilter) {
             result = result.filter((transaction) => {
                 if (recurringFilter === "recurring") return transaction.isRecurring;
@@ -164,12 +164,12 @@ const TransactionTable = ({ transactions: initialTransactions, onTransactionUpda
             });
         }
 
-        // Apply type filter
+        // Apply type filter (client-side for current page)
         if (typeFilter) {
             result = result.filter((transaction) => transaction.type === typeFilter);
         }
 
-        // Apply sorting
+        // Apply sorting (client-side for current page)
         result.sort((a, b) => {
             let comparison = 0;
 
@@ -505,11 +505,11 @@ const TransactionTable = ({ transactions: initialTransactions, onTransactionUpda
                                     <TableCell className="capitalize">
                                         <span
                                             style={{
-                                                background: categoryColors[transaction.category],
+                                                background: categoryColors[transaction.category] || '#64748b', // fallback to gray
                                             }}
                                             className="px-2 py-1 rounded text-white text-sm"
                                         >
-                                            {transaction.category}
+                                            {transaction.category?.replace(/[_-]/g, ' ') || 'Uncategorized'}
                                         </span>
                                     </TableCell>
                                     <TableCell

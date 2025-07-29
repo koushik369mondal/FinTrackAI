@@ -560,7 +560,7 @@ const TransactionTable = ({ transactions: initialTransactions, onTransactionUpda
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent>
-                                                <DropdownMenuLabel
+                                                <DropdownMenuItem
                                                     onClick={() =>
                                                         router.push(
                                                             `/transaction/create?edit=${transaction.id}`
@@ -568,7 +568,7 @@ const TransactionTable = ({ transactions: initialTransactions, onTransactionUpda
                                                     }
                                                 >
                                                     Edit
-                                                </DropdownMenuLabel>
+                                                </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="text-destructive"

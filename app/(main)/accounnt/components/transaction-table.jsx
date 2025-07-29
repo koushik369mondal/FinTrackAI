@@ -49,8 +49,10 @@ import {
     X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 // import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { flushSync } from "react-dom";
 import { BarLoader } from "react-spinners";
 import { toast } from "sonner";
 
@@ -61,8 +63,11 @@ const RECURRING_INTERVALS = {
     YEARLY: "Yearly",
 };
 
-const TransactionTable = ({ transactions }) => {
+const TransactionTable = ({ transactions: initialTransactions, onTransactionUpdate }) => {
     const router = useRouter();
+    const pathname = usePathname();
+    const isMountedRef = useRef(true);
+    const [transactions, setTransactions] = useState(initialTransactions);
     const [selectedIds, setSelectedIds] = useState([]);
     const [sortConfig, setSortConfig] = useState({
         field: "date",
@@ -72,20 +77,73 @@ const TransactionTable = ({ transactions }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [typeFilter, setTypeFilter] = useState("");
     const [recurringFilter, setRecurringFilter] = useState("");
+    const [deletingTransactionId, setDeletingTransactionId] = useState(null);
+    const [operationTimeout, setOperationTimeout] = useState(null);
+
+    // Track component mount/unmount
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    // Safe parent update function
+    const safeParentUpdate = useCallback((updatedTransactions, balanceChange) => {
+        // Use setTimeout to schedule the update outside of the current render cycle
+        setTimeout(() => {
+            if (isMountedRef.current && onTransactionUpdate) {
+                try {
+                    onTransactionUpdate(updatedTransactions, balanceChange);
+                } catch (error) {
+                    console.error('Error updating parent component:', error);
+                }
+            }
+        }, 0);
+    }, [onTransactionUpdate]);
 
     const {
         loading: deleteLoading,
         fn: deleteFn,
         data: deleted,
+        reset: resetDelete,
     } = useFetch(bulkDeleteTransactions);
 
     const {
         loading: singleDeleteLoading,
         fn: singleDeleteFn,
         data: singleDeleted,
+        reset: resetSingleDelete,
     } = useFetch(deleteTransaction);
 
+    // Add timeout protection for long-running operations
+    useEffect(() => {
+        if ((deleteLoading || singleDeleteLoading) && !operationTimeout) {
+            const timeout = setTimeout(() => {
+                toast.error('Operation is taking longer than expected. Please refresh the page.');
+                setDeletingTransactionId(null);
+                setOperationTimeout(null);
+            }, 15000); // 15 second timeout
+            
+            setOperationTimeout(timeout);
+        } else if (!deleteLoading && !singleDeleteLoading && operationTimeout) {
+            clearTimeout(operationTimeout);
+            setOperationTimeout(null);
+        }
+        
+        return () => {
+            if (operationTimeout) {
+                clearTimeout(operationTimeout);
+            }
+        };
+    }, [deleteLoading, singleDeleteLoading, operationTimeout]);
+
     // console.log(selectedIds);
+
+    // Update local state when transactions prop changes
+    useEffect(() => {
+        setTransactions(initialTransactions);
+    }, [initialTransactions]);
 
     const filteredAndSortedTransactions = useMemo(() => {
         let result = [...transactions];
@@ -134,31 +192,33 @@ const TransactionTable = ({ transactions }) => {
         return result;
     }, [transactions, searchTerm, typeFilter, recurringFilter, sortConfig]);
 
-    const handleSort = (field) => {
+    const handleSort = useCallback((field) => {
         setSortConfig((current) => ({
             field,
             direction:
                 current.field == field && current.direction === "asc" ? "desc" : "asc",
         }));
-    };
+    }, []);
 
-    const handleSelect = (id) => {
+    const handleSelect = useCallback((id) => {
         setSelectedIds((current) =>
             current.includes(id)
                 ? current.filter((item) => item !== id)
                 : [...current, id]
         );
-    };
+    }, []);
 
-    const handleSelectAll = () => {
+    const handleSelectAll = useCallback(() => {
         setSelectedIds((current) =>
             current.length === filteredAndSortedTransactions.length
                 ? []
                 : filteredAndSortedTransactions.map((t) => t.id)
         );
-    };
+    }, [filteredAndSortedTransactions]);
 
-    const handleBulkDelete = () => {
+    const handleBulkDelete = useCallback(async () => {
+        if (selectedIds.length === 0) return;
+        
         if (
             !window.confirm(
                 `Are you sure you want to delete ${selectedIds.length} transactions?`
@@ -166,44 +226,112 @@ const TransactionTable = ({ transactions }) => {
         ) {
             return;
         }
-        deleteFn(selectedIds);
-    };
+        
+        try {
+            await deleteFn(selectedIds);
+        } catch (error) {
+            console.error('Bulk delete error:', error);
+            toast.error('Failed to delete transactions. Please try again.');
+        }
+    }, [selectedIds, deleteFn]);
 
-    const handleSingleDelete = (transactionId) => {
+    const handleSingleDelete = useCallback(async (transactionId) => {
         if (!window.confirm("Are you sure you want to delete this transaction?")) {
             return;
         }
-        singleDeleteFn(transactionId);
-    };
+        
+        setDeletingTransactionId(transactionId);
+        
+        try {
+            await singleDeleteFn(transactionId);
+        } catch (error) {
+            console.error('Single delete error:', error);
+            toast.error('Failed to delete transaction. Please try again.');
+            setDeletingTransactionId(null);
+        }
+    }, [singleDeleteFn]);
 
     useEffect(() => {
         if (deleted && !deleteLoading) {
-            if (deleted.success) {
-                toast.success(deleted.message || "Transactions deleted successfully");
-                setSelectedIds([]); // Clear selection after successful delete
-                // Use a timeout to ensure server-side revalidation completes
-                setTimeout(() => {
-                    router.refresh();
-                }, 500);
-            } else {
-                toast.error(deleted.error || "Failed to delete transactions");
-            }
+            const handleSuccess = async () => {
+                if (deleted.success) {
+                    toast.success(deleted.message || "Transactions deleted successfully");
+                    
+                    // Use functional updates to avoid stale state references
+                    setTransactions(currentTransactions => {
+                        // Calculate balance change for deleted transactions
+                        const deletedTransactions = currentTransactions.filter(t => selectedIds.includes(t.id));
+                        const balanceChange = deletedTransactions.reduce((sum, t) => {
+                            return sum + (t.type === "EXPENSE" ? Number(t.amount) : -Number(t.amount));
+                        }, 0);
+                        
+                        // Get updated transactions
+                        const updatedTransactions = currentTransactions.filter(t => !selectedIds.includes(t.id));
+                        
+                        // Schedule parent update safely
+                        safeParentUpdate(updatedTransactions, balanceChange);
+                        
+                        return updatedTransactions;
+                    });
+                    setSelectedIds([]); // Clear selection after successful delete
+                } else {
+                    toast.error(deleted.error || "Failed to delete transactions");
+                }
+                
+                // Clear the operation timeout
+                if (operationTimeout) {
+                    clearTimeout(operationTimeout);
+                    setOperationTimeout(null);
+                }
+                
+                // Reset the fetch state to prevent re-triggering
+                setTimeout(() => resetDelete(), 100);
+            };
+            
+            handleSuccess();
         }
-    }, [deleted, deleteLoading, router]);
+    }, [deleted, deleteLoading, resetDelete, safeParentUpdate]);
 
     useEffect(() => {
         if (singleDeleted && !singleDeleteLoading) {
-            if (singleDeleted.success) {
-                toast.success(singleDeleted.message || "Transaction deleted successfully");
-                // Use a timeout to ensure server-side revalidation completes
-                setTimeout(() => {
-                    router.refresh();
-                }, 500);
-            } else {
-                toast.error(singleDeleted.error || "Failed to delete transaction");
-            }
+            const handleSuccess = async () => {
+                if (singleDeleted.success) {
+                    toast.success(singleDeleted.message || "Transaction deleted successfully");
+                    // Immediately remove deleted transaction from local state
+                    if (deletingTransactionId) {
+                        setTransactions(currentTransactions => {
+                            const deletedTransaction = currentTransactions.find(t => t.id === deletingTransactionId);
+                            const balanceChange = deletedTransaction ? 
+                                (deletedTransaction.type === "EXPENSE" ? Number(deletedTransaction.amount) : -Number(deletedTransaction.amount)) : 0;
+                            
+                            const updatedTransactions = currentTransactions.filter(t => t.id !== deletingTransactionId);
+                            
+                            // Schedule parent update safely
+                            safeParentUpdate(updatedTransactions, balanceChange);
+                            
+                            return updatedTransactions;
+                        });
+                        
+                        setDeletingTransactionId(null);
+                    }
+                } else {
+                    toast.error(singleDeleted.error || "Failed to delete transaction");
+                    setDeletingTransactionId(null);
+                }
+                
+                // Clear the operation timeout
+                if (operationTimeout) {
+                    clearTimeout(operationTimeout);
+                    setOperationTimeout(null);
+                }
+                
+                // Reset the fetch state to prevent re-triggering
+                setTimeout(() => resetSingleDelete(), 100);
+            };
+            
+            handleSuccess();
         }
-    }, [singleDeleted, singleDeleteLoading, router]);
+    }, [singleDeleted, singleDeleteLoading, resetSingleDelete, safeParentUpdate]);
 
     const handleClearFilters = () => {
         setSearchTerm("");
@@ -213,9 +341,17 @@ const TransactionTable = ({ transactions }) => {
     };
 
     return (
-        <div className="space-y-4">
-            {deleteLoading && (
-                <BarLoader className="mt-4" width={"100%"} color="#9333ea" />
+        <div className="space-y-4 relative">
+            {/* Loading overlay for delete operations */}
+            {(deleteLoading || singleDeleteLoading) && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <div className="bg-white p-4 rounded-lg shadow-lg border">
+                        <BarLoader width={200} color="#9333ea" />
+                        <p className="text-center mt-2 text-sm text-gray-600">
+                            {deleteLoading ? 'Deleting transactions...' : 'Deleting transaction...'}
+                        </p>
+                    </div>
+                </div>
             )}
 
             {/* Filters  */}
@@ -453,4 +589,4 @@ const TransactionTable = ({ transactions }) => {
     );
 };
 
-export default TransactionTable;
+export default React.memo(TransactionTable);

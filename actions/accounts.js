@@ -3,6 +3,12 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { dbMonitor } from "@/lib/db-monitor";
+
+// Database retry logic with improved error handling
+async function retryDatabase(fn, maxRetries = 3, delay = 1000) {
+  return await dbMonitor.retryOperation(fn, maxRetries);
+}
 
 const serializeTransaction = (obj) => {
     const serialized = { ...obj };
@@ -77,39 +83,47 @@ export async function updateDefaultAccount(accountId) {
 }
 
 export async function getAccountWithTransactions(accountId) {
-    const { userId } = await auth();
-    if (!userId) throw new Error("Unauthorized");
+    try {
+        const { userId } = await auth();
+        if (!userId) throw new Error("Unauthorized");
 
-    const user = await db.user.findUnique({
-        where: { clerkUserId: userId },
-    });
+        return await retryDatabase(async () => {
+            const user = await db.user.findUnique({
+                where: { clerkUserId: userId },
+            });
 
-    if (!user) {
-        throw new Error("User not found");
-    }
+            if (!user) {
+                throw new Error("User not found");
+            }
 
-    const account = await db.account.findUnique({
-        where: {
-            id: accountId,
-            userId: user.id,
-        },
-        include: {
-            transactions: {
-                orderBy: { date: "desc" },
-            },
-            _count: {
-                select: {
-                    transactions: true,
+            const account = await db.account.findUnique({
+                where: {
+                    id: accountId,
+                    userId: user.id,
                 },
-            },
-        },
-    });
-    if (!account) return null;
+                include: {
+                    transactions: {
+                        orderBy: { date: "desc" },
+                    },
+                    _count: {
+                        select: {
+                            transactions: true,
+                        },
+                    },
+                },
+            });
+            
+            if (!account) return null;
 
-    return {
-        ...serializeTransaction(account),
-        transactions: account.transactions.map(serializeTransaction),
-    };
+            return {
+                ...serializeTransaction(account),
+                transactions: account.transactions.map(serializeTransaction),
+            };
+        });
+    } catch (error) {
+        console.error('Error in getAccountWithTransactions:', error);
+        throw error;
+    }
 }
 
 export async function bulkDeleteTransactions(transactionIds) {
@@ -188,63 +202,69 @@ export async function deleteTransaction(transactionId) {
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorized");
 
-        const user = await db.user.findUnique({
-            where: { clerkUserId: userId },
-        });
+        const result = await retryDatabase(async () => {
+            const user = await db.user.findUnique({
+                where: { clerkUserId: userId },
+            });
 
-        if (!user) {
-            throw new Error("User not found");
-        }
+            if (!user) {
+                throw new Error("User not found");
+            }
 
-        // Find the transaction to get its details before deletion
-        const transaction = await db.transaction.findFirst({
-            where: {
-                id: transactionId,
-                userId: user.id,
-            },
-        });
-
-        if (!transaction) {
-            throw new Error("Transaction not found");
-        }
-
-        console.log('Found transaction to delete:', transaction);
-
-        // Calculate balance change
-        const balanceChange =
-            transaction.type === "EXPENSE"
-                ? transaction.amount
-                : -transaction.amount;
-
-        console.log('Balance change:', balanceChange);
-
-        // Delete transaction and update account balance in a transaction
-        await db.$transaction(async (tx) => {
-            // Delete the transaction
-            await tx.transaction.delete({
+            // Find the transaction to get its details before deletion
+            const transaction = await db.transaction.findFirst({
                 where: {
                     id: transactionId,
+                    userId: user.id,
                 },
             });
 
-            // Update account balance
-            await tx.account.update({
-                where: { id: transaction.accountId },
-                data: {
-                    balance: {
-                        increment: balanceChange,
+            if (!transaction) {
+                throw new Error("Transaction not found");
+            }
+
+            console.log('Found transaction to delete:', transaction);
+
+            // Calculate balance change
+            const balanceChange =
+                transaction.type === "EXPENSE"
+                    ? transaction.amount
+                    : -transaction.amount;
+
+            console.log('Balance change:', balanceChange, 'for transaction type:', transaction.type, 'amount:', transaction.amount);
+
+            // Delete transaction and update account balance in a transaction
+            return await db.$transaction(async (tx) => {
+                // Delete the transaction
+                const deletedTransaction = await tx.transaction.delete({
+                    where: {
+                        id: transactionId,
                     },
-                },
+                });
+
+                // Update account balance
+                const updatedAccount = await tx.account.update({
+                    where: { id: transaction.accountId },
+                    data: {
+                        balance: {
+                            increment: balanceChange,
+                        },
+                    },
+                });
+
+                console.log('Updated account balance to:', updatedAccount.balance);
+                return { deletedTransaction, updatedAccount, transaction };
             });
         });
 
-        console.log('Transaction deleted successfully');
+        console.log('Transaction deleted successfully, result:', result);
 
         revalidatePath("/dashboard");
-        revalidatePath(`/accounnt/${transaction.accountId}`, "page");
+        revalidatePath(`/accounnt/${result.transaction.accountId}`, "page");
 
         return { success: true, message: "Transaction deleted successfully" };
     } catch (error) {
+        console.error('Delete transaction error:', error);
         return {
             success: false,
             error: error.message || "Failed to delete transaction",

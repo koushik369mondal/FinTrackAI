@@ -156,6 +156,37 @@ export async function getAccountWithTransactions(accountId, page = 1, limit = 10
     }
 }
 
+export async function getAllTransactionsForChart(accountId) {
+    try {
+        const { userId } = await auth();
+        if (!userId) throw new Error("Unauthorized");
+
+        return await retryDatabase(async () => {
+            const user = await db.user.findUnique({
+                where: { clerkUserId: userId },
+            });
+
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            // Get all transactions for the account (for chart visualization)
+            const transactions = await db.transaction.findMany({
+                where: {
+                    accountId,
+                    userId: user.id,
+                },
+                orderBy: { date: "desc" },
+            });
+
+            return transactions.map(serializeTransaction);
+        });
+    } catch (error) {
+        console.error('Error in getAllTransactionsForChart:', error);
+        throw error;
+    }
+}
+
 export async function bulkDeleteTransactions(transactionIds) {
     try {
         const { userId } = await auth();

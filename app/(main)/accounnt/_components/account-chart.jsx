@@ -44,24 +44,57 @@ export default function AccountChart({ transactions }) {
             (t) => new Date(t.date) >= startDate && new Date(t.date) <= endOfDay(now)
         );
 
-        // Group transactions by date
-        const grouped = filtered.reduce((acc, transaction) => {
-            const date = format(new Date(transaction.date), "MMM dd");
-            if (!acc[date]) {
-                acc[date] = { date, income: 0, expense: 0 };
+        // Create array of all days in the range
+        const days = [];
+        if (range.days) {
+            // Generate all days in the range
+            for (let i = range.days - 1; i >= 0; i--) {
+                const date = subDays(now, i);
+                const dateKey = format(date, "yyyy-MM-dd");
+                const displayDate = format(date, "dd MMM"); // Show date and month (e.g., "15 Jan")
+                days.push({
+                    date: dateKey,
+                    displayDate,
+                    income: 0,
+                    expense: 0
+                });
             }
-            if (transaction.type === "INCOME") {
-                acc[date].income += transaction.amount;
-            } else {
-                acc[date].expense += transaction.amount;
-            }
-            return acc;
-        }, {});
+        } else {
+            // For "All Time", group by date as before
+            const grouped = filtered.reduce((acc, transaction) => {
+                const date = format(new Date(transaction.date), "yyyy-MM-dd");
+                const displayDate = format(new Date(transaction.date), "dd MMM"); // Show date and month
+                if (!acc[date]) {
+                    acc[date] = { date, displayDate, income: 0, expense: 0 };
+                }
+                if (transaction.type === "INCOME") {
+                    acc[date].income += transaction.amount;
+                } else {
+                    acc[date].expense += transaction.amount;
+                }
+                return acc;
+            }, {});
+            
+            return Object.values(grouped).sort(
+                (a, b) => new Date(a.date) - new Date(b.date)
+            );
+        }
 
-        // Convert to array and sort by date
-        return Object.values(grouped).sort(
-            (a, b) => new Date(a.date) - new Date(b.date)
-        );
+        // Fill in transaction data for each day
+        filtered.forEach(transaction => {
+            const transactionDate = format(new Date(transaction.date), "yyyy-MM-dd");
+            const dayIndex = days.findIndex(day => day.date === transactionDate);
+            
+            if (dayIndex !== -1) {
+                if (transaction.type === "INCOME") {
+                    days[dayIndex].income += transaction.amount;
+                } else {
+                    days[dayIndex].expense += transaction.amount;
+                }
+            }
+        });
+
+        return days;
     }, [transactions, dateRange]);
 
     // Calculate totals for the selected period
@@ -128,10 +161,14 @@ export default function AccountChart({ transactions }) {
                         >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis
-                                dataKey="date"
-                                fontSize={12}
+                                dataKey="displayDate"
+                                fontSize={10}
                                 tickLine={false}
                                 axisLine={false}
+                                interval={dateRange === "7D" ? 0 : dateRange === "1M" ? 2 : 5}
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
                             />
                             <YAxis
                                 fontSize={12}
@@ -140,7 +177,8 @@ export default function AccountChart({ transactions }) {
                                 tickFormatter={(value) => `$${value}`}
                             />
                             <Tooltip
-                                formatter={(value) => [`$${value}`, undefined]}
+                                labelFormatter={(label) => `Date: ${label}`}
+                                formatter={(value, name) => [`$${value.toFixed(2)}`, name === 'income' ? 'Income' : 'Expense']}
                                 contentStyle={{
                                     backgroundColor: "hsl(var(--popover))",
                                     border: "1px solid hsl(var(--border))",
@@ -152,13 +190,15 @@ export default function AccountChart({ transactions }) {
                                 dataKey="income"
                                 name="Income"
                                 fill="#22c55e"
-                                radius={[4, 4, 0, 0]}
+                                radius={[2, 2, 0, 0]}
+                                maxBarSize={dateRange === "7D" ? 40 : dateRange === "1M" ? 20 : 15}
                             />
                             <Bar
                                 dataKey="expense"
                                 name="Expense"
                                 fill="#ef4444"
-                                radius={[4, 4, 0, 0]}
+                                radius={[2, 2, 0, 0]}
+                                maxBarSize={dateRange === "7D" ? 40 : dateRange === "1M" ? 20 : 15}
                             />
                         </BarChart>
                     </ResponsiveContainer>

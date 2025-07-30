@@ -1,4 +1,4 @@
-import { getAccountWithTransactions } from "@/actions/accounts";
+import { getAccountWithTransactions, getAllTransactionsForChart } from "@/actions/accounts";
 import { notFound } from "next/navigation";
 import React, { Suspense } from "react";
 import AccountDetailClient from "../_components/account-detail-client";
@@ -13,7 +13,11 @@ export default async function AccountDetailPage({ params, searchParams }) {
         const currentPage = parseInt(page);
         const pageLimit = parseInt(limit);
 
+        // Get paginated transactions for the table
         const accountData = await getAccountWithTransactions(id, currentPage, pageLimit);
+        
+        // Get all transactions for the chart
+        const allTransactions = await getAllTransactionsForChart(id);
 
         if (!accountData) {
             notFound();
@@ -27,7 +31,7 @@ export default async function AccountDetailPage({ params, searchParams }) {
                 <Suspense
                     fallback={<BarLoader className="mt-4" width={"100%"} color="#9333ea" />}
                 >
-                    <AccountChart transactions={transactions} />
+                    <AccountChart transactions={allTransactions} />
                 </Suspense>
 
                 {/* Transaction Table */}

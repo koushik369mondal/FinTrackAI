@@ -68,7 +68,15 @@ export async function createTestTransactions(accountId, count = 100) {
 
         const transactions = [];
         
-        for (let i = 0; i < count; i++) {
+        // Ensure at least 1 transaction per day for the last 30 days
+        const now = new Date();
+        const guaranteedTransactions = [];
+        
+        // Create exactly 1 transaction for each of the last 30 days
+        for (let day = 0; day < 30; day++) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - day);
+            
             const isExpense = Math.random() > 0.3; // 70% expenses, 30% income
             const amount = isExpense 
                 ? Math.floor(Math.random() * 500) + 10  // $10-$510 for expenses
@@ -77,14 +85,39 @@ export async function createTestTransactions(accountId, count = 100) {
             const category = categories[Math.floor(Math.random() * categories.length)];
             const description = descriptions[Math.floor(Math.random() * descriptions.length)];
             
-            // Random date in the last 6 months
+            guaranteedTransactions.push({
+                amount,
+                description: `${description} #${day + 1}`,
+                category,
+                type: isExpense ? "EXPENSE" : "INCOME",
+                date,
+                accountId,
+                userId: user.id,
+            });
+        }
+        
+        // Add the guaranteed transactions
+        transactions.push(...guaranteedTransactions);
+        
+        // Fill remaining count with additional transactions spread across 60 days
+        const remainingCount = Math.max(0, count - 30);
+        for (let i = 0; i < remainingCount; i++) {
+            const isExpense = Math.random() > 0.3; // 70% expenses, 30% income
+            const amount = isExpense 
+                ? Math.floor(Math.random() * 500) + 10  // $10-$510 for expenses
+                : Math.floor(Math.random() * 2000) + 100; // $100-$2100 for income
+            
+            const category = categories[Math.floor(Math.random() * categories.length)];
+            const description = descriptions[Math.floor(Math.random() * descriptions.length)];
+            
+            // Spread additional transactions across the last 60 days
+            const daysBack = Math.floor(Math.random() * 60);
             const date = new Date();
-            date.setMonth(date.getMonth() - Math.floor(Math.random() * 6));
-            date.setDate(Math.floor(Math.random() * 28) + 1);
+            date.setDate(date.getDate() - daysBack);
 
             transactions.push({
                 amount,
-                description: `${description} #${i + 1}`,
+                description: `${description} #${i + 31}`,
                 category,
                 type: isExpense ? "EXPENSE" : "INCOME",
                 date,

@@ -128,10 +128,10 @@ const AccountDetailClient = ({ initialAccount, initialTransactions, initialPagin
     }, [account.id, isLoading]);
 
     const handleCreateTestData = useCallback(async () => {
-        if (window.confirm('Create 100 test transactions? This will help test pagination properly.')) {
+        if (window.confirm('Create 150 test transactions? This will provide daily data for chart visualization.')) {
             setIsLoading(true);
             try {
-                await createTestTransactions(account.id, 100);
+                await createTestTransactions(account.id, 150);
                 window.location.reload(); // Reload to show new data
             } catch (error) {
                 setError('Failed to create test data');
@@ -209,20 +209,18 @@ const AccountDetailClient = ({ initialAccount, initialTransactions, initialPagin
                         {transactionCount} Transactions
                     </p>
                     {/* Temporary test button - remove in production */}
-                    {transactionCount < 100 && (
+                    {transactionCount < 150 && (
                         <Button 
                             variant="outline" 
                             size="sm" 
                             onClick={handleCreateTestData}
                             className="mt-2"
                         >
-                            Add Test Data (100)
+                            Add Test Data (150)
                         </Button>
                     )}
                 </div>
             </div>
-            {/* Chart Section */}
-
             {/* Transaction Table */}
             <TransactionTable 
                 transactions={transactions} 

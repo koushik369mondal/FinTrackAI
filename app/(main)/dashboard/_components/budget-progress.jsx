@@ -23,6 +23,9 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
         initialBudget?.amount?.toString() || ""
     );
 
+    // Debug logging
+    console.log("BudgetProgress props:", { initialBudget, currentExpenses });
+
     const {
         loading: isLoading,
         fn: updateBudgetFn,
@@ -33,6 +36,8 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
     const percentUsed = initialBudget
         ? (currentExpenses / initialBudget.amount) * 100
         : 0;
+
+    console.log("Calculated percentUsed:", percentUsed);
 
     const handleUpdateBudget = async () => {
         const amount = parseFloat(newBudget);
@@ -106,7 +111,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                                         ? `$${currentExpenses.toFixed(
                                             2
                                         )} of $${initialBudget.amount.toFixed(2)} spent`
-                                        : "No budget set"}
+                                        : "No budget set - Click pencil to set budget"}
                                 </CardDescription>
                                 <Button
                                     variant="ghost"
@@ -122,7 +127,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                 </div>
             </CardHeader>
             <CardContent>
-                {initialBudget && (
+                {initialBudget ? (
                     <div className="space-y-2">
                         <Progress
                             value={percentUsed}
@@ -136,6 +141,15 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                         />
                         <p className="text-xs text-muted-foreground text-right">
                             {percentUsed.toFixed(1)}% used
+                        </p>
+                    </div>
+                ) : (
+                    <div className="space-y-2 text-center">
+                        <div className="text-sm text-muted-foreground">
+                            Current month expenses: <span className="font-medium text-foreground">${currentExpenses.toFixed(2)}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Set a budget to track your spending progress
                         </p>
                     </div>
                 )}

@@ -6,6 +6,7 @@ import React from "react";
 import AccountCard from "./_components/account-card";
 import { getCurrentBudget } from "@/actions/budget";
 import { BudgetProgress } from "./_components/budget-progress";
+// import  BudgetProgress  from "./_components/budget-progress";
 
 export default async function DashboardPage() {
     const accounts = await getUserAccounts();
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
     // console.log("Accounts:", accounts);
 
     return (
-        <div className="px-5">
+        <div className="space-y-8">
             {/* Budget Progress  */}
             {defaultAccount && (
                 <BudgetProgress

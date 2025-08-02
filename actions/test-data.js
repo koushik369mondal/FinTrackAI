@@ -1,12 +1,10 @@
-"use server";
+import { PrismaClient } from "@prisma/client";
 
-import { db } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+const db = new PrismaClient();
 
 export async function createTestTransactions(accountId, count = 100) {
     try {
-        const { userId } = await auth();
-        if (!userId) throw new Error("Unauthorized");
+        // Skip auth check for test script
 
         const user = await db.user.findUnique({
             where: { clerkUserId: userId },
@@ -136,5 +134,48 @@ export async function createTestTransactions(accountId, count = 100) {
     } catch (error) {
         console.error('Error creating test transactions:', error);
         throw error;
+    } finally {
+        await db.$disconnect();
     }
+}
+
+// Test runner for direct execution
+if (import.meta.url === `file://${process.argv[1]}`) {
+    async function runTest() {
+        try {
+            // Get the first account or create a test user
+            console.log('Looking for test account...');
+            const account = await db.account.findFirst();
+            
+            if (!account) {
+                console.log('No accounts found. Creating test user and account...');
+                
+                const user = await db.user.create({
+                    data: {
+                        clerkUserId: 'test_user_123',
+                        email: 'test@example.com',
+                        name: 'Test User'
+                    }
+                });
+
+                const testAccount = await db.account.create({
+                    data: {
+                        name: 'Test Account',
+                        type: 'CHECKING',
+                        balance: 10000,
+                        userId: user.id
+                    }
+                });
+
+                await createTestTransactions(testAccount.id, 100);
+            } else {
+                console.log(`Found account: ${account.name}`);
+                await createTestTransactions(account.id, 100);
+            }
+        } catch (error) {
+            console.error('Test runner failed:', error);
+        }
+    }
+    
+    runTest();
 }

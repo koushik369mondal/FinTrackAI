@@ -126,13 +126,12 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                     <div className="space-y-2">
                         <Progress
                             value={percentUsed}
-                            extraStyles={`${
-                                // add to Progress component
+                            className={`${
                                 percentUsed >= 90
-                                    ? "bg-red-500"
+                                    ? "[&>[data-slot=progress-indicator]]:bg-red-500"
                                     : percentUsed >= 75
-                                        ? "bg-yellow-500"
-                                        : "bg-green-500"
+                                        ? "[&>[data-slot=progress-indicator]]:bg-yellow-500"
+                                        : "[&>[data-slot=progress-indicator]]:bg-green-500"
                                 }`}
                         />
                         <p className="text-xs text-muted-foreground text-right">

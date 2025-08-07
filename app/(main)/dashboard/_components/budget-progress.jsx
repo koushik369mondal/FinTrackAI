@@ -23,9 +23,6 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
         initialBudget?.amount?.toString() || ""
     );
 
-    // Debug logging
-    console.log("BudgetProgress props:", { initialBudget, currentExpenses });
-
     const {
         loading: isLoading,
         fn: updateBudgetFn,
@@ -36,8 +33,6 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
     const percentUsed = initialBudget
         ? (currentExpenses / initialBudget.amount) * 100
         : 0;
-
-    console.log("Calculated percentUsed:", percentUsed);
 
     const handleUpdateBudget = async () => {
         const amount = parseFloat(newBudget);
@@ -141,6 +136,9 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                         />
                         <p className="text-xs text-muted-foreground text-right">
                             {percentUsed.toFixed(1)}% used
+                            {percentUsed > 100 && (
+                                <span className="text-red-500 font-medium"> - Over Budget!</span>
+                            )}
                         </p>
                     </div>
                 ) : (
@@ -151,6 +149,11 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                         <p className="text-xs text-muted-foreground">
                             Set a budget to track your spending progress
                         </p>
+                        {currentExpenses > 0 && (
+                            <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded-md">
+                                💡 You've spent ${currentExpenses.toFixed(2)} this month without a budget limit
+                            </div>
+                        )}
                     </div>
                 )}
             </CardContent>

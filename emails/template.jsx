@@ -35,21 +35,20 @@ const PREVIEW_DATA = {
         },
     },
     budgetAlert: {
-        userName: "Kaushik",
+        userName: "",
         type: "budget-alert",
-        data: {
-            percentageUsed: 85,
-            budgetAmount: 4000,
-            totalExpenses: 3400,
-        },
+        data: {},
     },
 };
 
 export default function EmailTemplate({
-    userName = "Kaushik",
+    userName = "",
     type = "budget-alert",
     data = PREVIEW_DATA.budgetAlert.data,
 }) {
+    if (type === "monthly-report") {
+    }
+    
     if (type === "budget-alert") {
         return (
             <Html>

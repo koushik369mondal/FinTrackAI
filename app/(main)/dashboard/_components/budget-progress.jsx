@@ -130,15 +130,19 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                                 percentUsed >= 90
                                     ? "[&>[data-slot=progress-indicator]]:bg-red-500"
                                     : percentUsed >= 75
-                                        ? "[&>[data-slot=progress-indicator]]:bg-yellow-500"
+                                        ? "[&>[data-slot=progress-indicator]]:bg-orange-500"
                                         : "[&>[data-slot=progress-indicator]]:bg-green-500"
                                 }`}
                         />
                         <p className="text-xs text-muted-foreground text-right">
                             {percentUsed.toFixed(1)}% used
-                            {percentUsed > 100 && (
+                            {percentUsed > 100 ? (
                                 <span className="text-red-500 font-medium"> - Over Budget!</span>
-                            )}
+                            ) : percentUsed >= 90 ? (
+                                <span className="text-red-500 font-medium"> - Critical!</span>
+                            ) : percentUsed >= 75 ? (
+                                <span className="text-orange-500 font-medium"> - Warning!</span>
+                            ) : null}
                         </p>
                     </div>
                 ) : (
